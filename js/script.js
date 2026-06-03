@@ -1,67 +1,100 @@
+import { memory, applyGrayscale, invertColors } from "../build/release.js";
 
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-    import { applyGrayscale, memory } from "../build/release.js";
+let imageLoaded = false;
+let originalImageData = null;
+let filterMode = 0;
 
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+// ---------------- LOAD FROM GALLERY ONLY ----------------
+document.querySelectorAll(".thumb").forEach(item => {
+  item.onclick = () => {
+
     const img = new Image();
-    img.crossOrigin = "anonymous"; // Add this line!
-    img.src = 'images/car3.jpg';
+    img.src = item.src;
 
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
 
-    // img.onload = () => {
-    //   canvas.width = img.width;
-    //   canvas.height = img.height;
-    //   ctx.drawImage(img, 0, 0);
-    // };
+      ctx.drawImage(img, 0, 0);
 
-    // Wait for it to finish loading before trying to draw it
-img.onload = () => {
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
-    console.log("Image loaded successfully!");
+      originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      imageLoaded = true;
+      filterMode = 0;
+    };
+  };
+});
+
+// ---------------- FILTER BUTTON ----------------
+document.getElementById('filterBtn').onclick = () => {
+  if (!imageLoaded) return;
+
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels = imageData.data;
+
+  // ensure WASM memory
+  if (memory.buffer.byteLength < pixels.length) {
+    const pages = Math.ceil(pixels.length / 65536);
+    memory.grow(pages);
+  }
+
+  const buf = new Uint8Array(memory.buffer);
+  buf.set(pixels, 0);
+
+  // SWITCH FILTERS
+  if (filterMode === 0) {
+    applyGrayscale(0, pixels.length);
+  } else {
+    invertColors(0, pixels.length);
+  }
+
+  filterMode = (filterMode + 1) % 2;
+
+  pixels.set(buf.subarray(0, pixels.length));
+  ctx.putImageData(imageData, 0, 0);
 };
 
-// Add this to catch errors (like a wrong path)
-img.onerror = () => {
-    console.error("Could not find the image at: " + img.src);
-    alert("Check your 'images' folder for " + img.src);
+// ---------------- RESET ----------------
+document.getElementById('resetBtn').onclick = () => {
+  if (!imageLoaded || !originalImageData) return;
+
+  ctx.putImageData(originalImageData, 0, 0);
+  filterMode = 0;
+  
+  // Reset 3D spin
+  isSpinning = false;
+  rotation = 0;
+
+  container.style.transform =
+    `rotateY(0deg) rotateX(0deg)`;
+
+  // Reset button text
+  document.getElementById('spinBtn').innerText = "Start 3D Spin";
 };
+
+// ---------------- 3D SPIN ----------------
 let rotation = 0;
 let isSpinning = false;
 const container = document.getElementById('container');
 
-// The Spin Loop
 function animate() {
   if (isSpinning) {
-    rotation += 2; // Speed of rotation
-    container.style.transform = `rotateY(${rotation}deg) rotateX(${rotation/4}deg)`;
+    rotation += 2;
+    container.style.transform =
+      `rotateY(${rotation}deg) rotateX(${rotation / 4}deg)`;
   }
-  requestAnimationFrame(animate); // Keep the loop smooth
+  requestAnimationFrame(animate);
 }
 animate();
 
 document.getElementById('spinBtn').onclick = () => {
   isSpinning = !isSpinning;
-  document.getElementById('spinBtn').innerText = isSpinning ? "Stop Spin" : "Start 3D Spin";
+  document.getElementById('spinBtn').innerText =
+    isSpinning ? "Stop Spin" : "Start 3D Spin";
 };
 
-// ... keep your existing 'invertBtn' and Wasm logic here ...
-
-    document.getElementById('btn').onclick = () => {
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const pixels = imageData.data; // This is a Uint8ClampedArray
-
-      // 1. Copy pixels into Wasm Memory
-      const wasmBuffer = new Uint8Array(memory.buffer);
-      wasmBuffer.set(pixels);
-
-      // 2. Run the Wasm filter
-      applyGrayscale(pixels.length);
-
-      // 3. Copy it back and update the screen
-      pixels.set(wasmBuffer.subarray(0, pixels.length));
-      ctx.putImageData(imageData, 0, 0);
-    };
- 
+// DEBUG (optional)
+console.log("WASM grayscale:", applyGrayscale);
+console.log("WASM invert:", invertColors);

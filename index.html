@@ -8,13 +8,35 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 
-<div class="canvas-container" id="container">
-  <canvas id="canvas"></canvas>
-</div>
+<body>
 
-<div class="controls">
-  <button id="btn" type="reset">Invert Colors (Wasm)</button>
-<button id="spinBtn" type="reset">Start 3D Spin</button>
+<div class="app">
+
+  <h2>WASM Image Filter Lab</h2>
+
+  <!-- Gallery -->
+  <div class="gallery">
+    <img src="images/car1.jpg" class="thumb" alt="A red sports car driving on a highway">
+    <img src="images/car2.jpg" class="thumb" alt="A blue SUV parked in a city street">
+    <img src="images/car3.jpg" class="thumb" alt="A black luxury car parked in a garage">
+    <img src="images/car4.jpg" class="thumb" alt="A white pickup truck on a rural road">
+    <img src="images/car5.jpg" class="thumb" alt="A green convertible driving on a scenic route">
+  </div>
+
+  <!-- Main canvas -->
+  <div class="canvas-container" id="container">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+
+    <button id="filterBtn">Switch Filter</button>
+    <button id="resetBtn">Reset</button>
+    <button id="spinBtn">3D Spin</button>
+
+  </div>
+
 </div>
 
 <script type="module" src="js/script.js"></script>

@@ -2,19 +2,21 @@
   "name": "my-wasm-project",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
+  "description": "A simple 3D image editor built with WebAssembly",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "asc assembly/index.ts -b build/release.wasm -O3 --exportRuntime",
     "asbuild:debug": "asc assembly/index.ts --target debug",
     "asbuild:release": "asc assembly/index.ts --target release",
     "asbuild": "npm run asbuild:debug && npm run asbuild:release",
     "start": "npx serve ."
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["webdev", "3d", "image-editor", "wasm"],
+  "author": "Deepak",
   "license": "ISC",
   "devDependencies": {
-    "assemblyscript": "^0.28.9"
+    "@assemblyscript/loader": "^latest",
+    "assemblyscript": "^latest"
   }
 }
